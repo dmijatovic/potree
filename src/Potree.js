@@ -10,7 +10,6 @@ export * from "./KeyCodes.js";
 export * from "./LRU.js";
 export * from "./PointCloudEptGeometry.js";
 export * from "./PointCloudCopcGeometry.js";
-export * from "./PointCloudVpcGeometry.js";
 export * from "./PointCloudOctree.js";
 export * from "./PointCloudOctreeGeometry.js";
 export * from "./PointCloudTree.js";
@@ -90,7 +89,7 @@ import {EptLoader} from "./loader/EptLoader.js";
 import {CopcLoader} from "./loader/CopcLoader.js";
 import {PointCloudOctree} from "./PointCloudOctree.js";
 import {WorkerPool} from "./WorkerPool.js";
-import { VpcLoader } from "./loader/VpcLoader.js";
+import {VpcLoader} from "./loader/VpcLoader.js";
 
 export const workerPool = new WorkerPool();
 
@@ -137,9 +136,6 @@ export {scriptPath, resourcePath};
 export function loadPointCloud(path, name, callback){
 	let loaded = function(e){
 		if (e.pointclouds){
-			for (const [pos, pointcloud] of e.pointclouds.entries()){
-				pointcloud.name = `name-${pos}`
-			}
 			callback(e)
 		}else{
 			e.pointcloud.name = name;
@@ -169,9 +165,11 @@ export function loadPointCloud(path, name, callback){
 				}
 				else {
 					let pointcloud = new PointCloudOctree(geometry);
-					console.group("Potree.loadPointCloud")
+					debugger
+					console.group("Potree.loadPointCloud.CopcLoader")
 					console.log("geometry...", geometry)
 					console.log("pointcloud...", pointcloud)
+					console.log("pointcloud.material.elevationRange...", pointcloud.material.elevationRange)
 					console.groupEnd()
 					resolve({type: 'pointcloud_loaded', pointcloud: pointcloud});
 				}
@@ -182,7 +180,6 @@ export function loadPointCloud(path, name, callback){
 					//callback({type: 'loading_failed'});
 					console.error(new Error(`failed to load point cloud from URL: ${path}`));
 				} else {
-					let pointcloud = new PointCloudOctree(geometry);
 					// loaded(pointcloud);
 					resolve({type: 'pointcloud_loaded', pointcloud: pointcloud});
 				}
@@ -220,23 +217,12 @@ export function loadPointCloud(path, name, callback){
 				}
 			});
 		} else if (path.indexOf('.vpc') > 0) {
-			VpcLoader.load(path, function(geometries) {
-				if (!geometries) {
-					console.error(new Error(`failed to load point cloud from URL: ${path}`));
+			VpcLoader.load(path, function(pointclouds) {
+				if (!pointclouds) {
+					console.error(new Error(`failed to load pointclouds from URL: ${path}`));
 				}
 				else {
-					// debugger
-					const pointclouds = [];
-					for (const geometry of geometries) {
-						const pointcloud = new PointCloudOctree(geometry);
-						pointclouds.push(pointcloud);
-					}
-					console.group("Potree.loadPointCloud")
-					console.log("geometries...", geometries)
-					console.log("pointclouds...", pointclouds)
-					console.groupEnd()
 					resolve({type: 'pointclouds_loaded', pointclouds});
-
 				}
 			})
 		} else {
