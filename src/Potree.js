@@ -9,6 +9,7 @@ export * from "./Features.js";
 export * from "./KeyCodes.js";
 export * from "./LRU.js";
 export * from "./PointCloudEptGeometry.js";
+export * from "./PointCloudCopcGeometry.js";
 export * from "./PointCloudOctree.js";
 export * from "./PointCloudOctreeGeometry.js";
 export * from "./PointCloudTree.js";
@@ -34,6 +35,8 @@ export * from "./materials/PointCloudMaterial.js";
 export * from "./loader/POCLoader.js";
 export * from "./modules/loader/2.0/OctreeLoader.js";
 export * from "./loader/EptLoader.js";
+export * from "./loader/CopcLoader.js";
+export * from "./loader/VpcLoader.js";
 export * from "./loader/ept/BinaryLoader.js";
 export * from "./loader/ept/LaszipLoader.js";
 export * from "./loader/ept/ZstandardLoader.js";
@@ -82,9 +85,11 @@ import "./extensions/Ray.js";
 import {LRU} from "./LRU.js";
 import {OctreeLoader} from "./modules/loader/2.0/OctreeLoader.js";
 import {POCLoader} from "./loader/POCLoader.js";
-import {CopcLoader, EptLoader} from "./loader/EptLoader.js";
+import {EptLoader} from "./loader/EptLoader.js";
+import {CopcLoader} from "./loader/CopcLoader.js";
 import {PointCloudOctree} from "./PointCloudOctree.js";
 import {WorkerPool} from "./WorkerPool.js";
+import {VpcLoader} from "./loader/VpcLoader.js";
 
 export const workerPool = new WorkerPool();
 
@@ -130,8 +135,12 @@ export {scriptPath, resourcePath};
 
 export function loadPointCloud(path, name, callback){
 	let loaded = function(e){
-		e.pointcloud.name = name;
-		callback(e);
+		if (e.pointclouds){
+			callback(e)
+		}else{
+			e.pointcloud.name = name;
+			callback(e);
+		}
 	};
 
 	let promise = new Promise( resolve => {
@@ -156,6 +165,12 @@ export function loadPointCloud(path, name, callback){
 				}
 				else {
 					let pointcloud = new PointCloudOctree(geometry);
+					debugger
+					console.group("Potree.loadPointCloud.CopcLoader")
+					console.log("geometry...", geometry)
+					console.log("pointcloud...", pointcloud)
+					console.log("pointcloud.material.elevationRange...", pointcloud.material.elevationRange)
+					console.groupEnd()
 					resolve({type: 'pointcloud_loaded', pointcloud: pointcloud});
 				}
 			});
@@ -165,7 +180,6 @@ export function loadPointCloud(path, name, callback){
 					//callback({type: 'loading_failed'});
 					console.error(new Error(`failed to load point cloud from URL: ${path}`));
 				} else {
-					let pointcloud = new PointCloudOctree(geometry);
 					// loaded(pointcloud);
 					resolve({type: 'pointcloud_loaded', pointcloud: pointcloud});
 				}
@@ -203,16 +217,14 @@ export function loadPointCloud(path, name, callback){
 				}
 			});
 		} else if (path.indexOf('.vpc') > 0) {
-			PointCloudArena4DGeometry.load(path, function (geometry) {
-				if (!geometry) {
-					//callback({type: 'loading_failed'});
-					console.error(new Error(`failed to load point cloud from URL: ${path}`));
-				} else {
-					let pointcloud = new PointCloudArena4D(geometry);
-					// loaded(pointcloud);
-					resolve({type: 'pointcloud_loaded', pointcloud: pointcloud});
+			VpcLoader.load(path, function(pointclouds) {
+				if (!pointclouds) {
+					console.error(new Error(`failed to load pointclouds from URL: ${path}`));
 				}
-			});
+				else {
+					resolve({type: 'pointclouds_loaded', pointclouds});
+				}
+			})
 		} else {
 			//callback({'type': 'loading_failed'});
 			console.error(new Error(`failed to load point cloud from URL: ${path}`));

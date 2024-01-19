@@ -204,11 +204,19 @@ export class PointCloudOctree extends PointCloudTree {
 
 	toTreeNode (geometryNode, parent) {
 		let node = new PointCloudOctreeNode();
-
-		// if(geometryNode.name === "r40206"){
-		//	console.log("creating node for r40206");
-		// }
 		let sceneNode = new THREE.Points(geometryNode.geometry, this.material);
+
+		// console.groupCollapsed(`PointCloudOctree.toTreeNode: ${geometryNode.name}`)
+		// console.log("geometryNode...", geometryNode)
+		// console.log("sceneNode...", sceneNode)
+		// console.groupEnd()
+
+		// if (geometryNode.name === 'r402446'){
+		// 	console.log("r402446....LOADED")
+		// 	debugger
+		// }
+
+
 		sceneNode.name = geometryNode.name;
 		sceneNode.position.copy(geometryNode.boundingBox.min);
 		sceneNode.frustumCulled = false;
@@ -235,18 +243,6 @@ export class PointCloudOctree extends PointCloudTree {
 				}
 			}
 		};
-
-		// { // DEBUG
-		//	let sg = new THREE.SphereGeometry(1, 16, 16);
-		//	let sm = new THREE.MeshNormalMaterial();
-		//	let s = new THREE.Mesh(sg, sm);
-		//	s.scale.set(5, 5, 5);
-		//	s.position.copy(geometryNode.mean)
-		//		.add(this.position)
-		//		.add(geometryNode.boundingBox.min);
-		//
-		//	viewer.scene.scene.add(s);
-		// }
 
 		node.geometryNode = geometryNode;
 		node.sceneNode = sceneNode;
@@ -366,7 +362,7 @@ export class PointCloudOctree extends PointCloudTree {
 			}
 
 			let density = node.geometryNode.density;
-			
+
 			if(typeof density === "number" && !Number.isNaN(density)){
 				let lodOffset = Math.log2(density) / 2 - 1.5;
 
@@ -413,7 +409,7 @@ export class PointCloudOctree extends PointCloudTree {
 	}
 
 	deepestNodeAt(position){
-		
+
 		const toObjectSpace = this.matrixWorld.clone().invert();
 
 		const objPos = position.clone().applyMatrix4(toObjectSpace);
@@ -901,11 +897,11 @@ export class PointCloudOctree extends PointCloudTree {
 			}
 		}
 
-		
+
 		// { // DEBUG: show panel with pick image
 		// 	let img = Utils.pixelsArrayToImage(buffer, w, h);
 		// 	let screenshot = img.src;
-		
+
 		// 	if(!this.debugDIV){
 		// 		this.debugDIV = $(`
 		// 			<div id="pickDebug"
@@ -916,7 +912,7 @@ export class PointCloudOctree extends PointCloudTree {
 		// 			"></div>`);
 		// 		$(document.body).append(this.debugDIV);
 		// 	}
-		
+
 		// 	this.debugDIV.empty();
 		// 	this.debugDIV.append($(`<img src="${screenshot}"
 		// 		style="transform: scaleY(-1); width: 300px"/>`));

@@ -54,8 +54,8 @@
 			$("#menu_appearance").next().show();
 		});
 
-        var path = "../pointclouds/lion_takanawa.copc.laz";
-		var name = "lion";
+    var path = "./..\\copc\\C_01CZ1.copc.laz";
+		var name = "C_01CZ1.copc";
 
 		var getQueryParam = function(name) {
 			name = name.replace(/[\[\]]/g, "\\$&");
@@ -65,23 +65,16 @@
 			return decodeURIComponent(results[2].replace(/\+/g, " "));
 		}
 
-        var r = getQueryParam('r');
-        if (r) {
-			name = r;
-            var http = 'http';
-            if (r.substr(0, http.length) == http) path = name;
-            else path = "../pointclouds/" + name + "/ept.json";
-        }
+		var r = getQueryParam('r');
+		if (r) {
+		name = r;
+			var http = 'http';
+			if (r.substr(0, http.length) == http) path = name;
+			else path = "../pointclouds/" + name + "/ept.json";
+		}
 
 		var c = getQueryParam('c');
 		Potree.loadPointCloud(path, name, function(e){
-			debugger
-			console.group("copc.html")
-			console.log("path...", path)
-			console.log("name...", name)
-			console.log("e.pointcloud", e.pointcloud)
-			console.groupEnd()
-
 			viewer.scene.addPointCloud(e.pointcloud);
 
 			let material = e.pointcloud.material;
@@ -89,7 +82,9 @@
 			material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
 			if (c) material.activeAttributeName = c;
 
-			viewer.fitToScreen(0.5);
+			viewer.fitToScreen(1);
+
+			material.activeAttributeName = "elevation";
 		});
 	</script>
   </body>
